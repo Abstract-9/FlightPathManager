@@ -26,7 +26,7 @@ public class FlightPathManager {
 
     public static void main(String[] args) {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-landing-bay-manager");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-flight_path-manager");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "confluent:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerde.class);
@@ -44,7 +44,8 @@ public class FlightPathManager {
 
         final StreamsBuilder streamBuilder = new StreamsBuilder();
 
-        streamBuilder.table(DRONE_STATUS_TOPIC, consumed, Materialized.as(DRONE_STORE_NAME));
+        // Don't need this for now
+        // streamBuilder.table(DRONE_STATUS_TOPIC, consumed, Materialized.as(DRONE_STORE_NAME));
 
         final Topology topBuilder = streamBuilder.build(props);
 
@@ -54,13 +55,13 @@ public class FlightPathManager {
 
         topBuilder.addStateStore(Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(FLIGHT_PATH_STORE_NAME),
-                jsonSerde,
+                Serdes.String(),
                 jsonSerde
         ), FLIGHT_PATH_PROCESSOR_NAME);
 
-        topBuilder.connectProcessorAndStateStores(FLIGHT_PATH_PROCESSOR_NAME, DRONE_STORE_NAME);
+        // topBuilder.connectProcessorAndStateStores(FLIGHT_PATH_PROCESSOR_NAME, DRONE_STORE_NAME);
 
-        topBuilder.addSink(FLIGHT_PATH_OUTPUT_NAME, FLIGHT_PATH_TOPIC);
+        topBuilder.addSink(FLIGHT_PATH_OUTPUT_NAME, FLIGHT_PATH_TOPIC, FLIGHT_PATH_PROCESSOR_NAME);
 
         return topBuilder;
     }
