@@ -62,9 +62,8 @@ public class FlightPathProcessor implements Processor<String, JsonNode, String, 
                 // Now we generate the result and emit it
                 ObjectNode result = new ObjectNode(factory);
                 result.put("eventType", "PathAssignment")
-                        .put("altitude", envelope)
-                        .set("start", record.value().get("start"));
-                result.set("end", record.value().get("end"));
+                        .set("start", ((ObjectNode) record.value().get("start").deepCopy()).put("alt", envelope));
+                result.set("end", ((ObjectNode) record.value().get("end").deepCopy()).put("alt", envelope));
                 this.context.forward(new Record<String, JsonNode>(record.key(), result, System.currentTimeMillis()));
             }
         } else {

@@ -2,6 +2,8 @@ package com.jamz.flightPathManager;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jamz.flightPathManager.processors.FlightPathProcessor;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -27,7 +29,18 @@ public class FlightPathManager {
     public static void main(String[] args) {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-flight_path-manager");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "confluent:9092");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "pkc-419q3.us-east4.gcp.confluent.cloud:9092");
+        // Security Config
+        props.put(StreamsConfig.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+        props.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
+        props.put(SaslConfigs.SASL_JAAS_CONFIG, "org.apache.kafka.common.security.plain.PlainLoginModule required " +
+                "username=\"PSAFM6VH7LWNGV5D\" password=\"DfAiu9RSyI/udfvUm9j3HUtxHEECfrR9+K7tE8NTCI5g1x2am9ZkRfFWUSf+uT8G\";");
+        // Performance Config
+        props.put(StreamsConfig.producerPrefix(ProducerConfig.RETRIES_CONFIG), 2147483647);
+        props.put("producer.confluent.batch.expiry.ms", 9223372036854775807L);
+        props.put(StreamsConfig.producerPrefix(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG), 300000);
+        props.put(StreamsConfig.producerPrefix(ProducerConfig.MAX_BLOCK_MS_CONFIG), 9223372036854775807L);
+        // Serdes Config
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JSONSerde.class);
 
@@ -53,11 +66,12 @@ public class FlightPathManager {
 
         topBuilder.addProcessor(FLIGHT_PATH_PROCESSOR_NAME, FlightPathProcessor::new, FLIGHT_PATH_INPUT_NAME);
 
+        // Logging is disabled on all state stores for testing. This will need to be different in prod
         topBuilder.addStateStore(Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(FLIGHT_PATH_STORE_NAME),
                 Serdes.String(),
                 jsonSerde
-        ), FLIGHT_PATH_PROCESSOR_NAME);
+        ).withLoggingDisabled(), FLIGHT_PATH_PROCESSOR_NAME);
 
         // topBuilder.connectProcessorAndStateStores(FLIGHT_PATH_PROCESSOR_NAME, DRONE_STORE_NAME);
 
