@@ -1,0 +1,26 @@
+plugins {
+    id 'application'
+}
+
+group 'com.jamz'
+version '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'com.jamz.flightPathManager.FlightPathManager'
+}
+
+dependencies {
+    implementation 'org.apache.kafka:kafka-streams:2.8.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.5'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.5'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.32'
+    implementation 'log4j:log4j:1.2.17'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    testImplementation 'org.apache.kafka:kafka-streams-test-utils:2.8.0'
+}
